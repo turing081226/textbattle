@@ -11,9 +11,7 @@ function updateElo(current, opponent, score) {
 }
 
 async function judgeBattle(nameA, nameB, descA, descB) {
-  if (!GEMINI_API_KEY) {
-    return { winner: 'draw', log: '키 미설정으로 무승부 처리' };
-  }
+  if (!GEMINI_API_KEY) return { winner: 'draw', log: '키 미설정으로 무승부 처리' };
   const prompt = `
 당신은 두 캐릭터의 가상 시나리오를 해설하는 해설위원입니다. 두 캐릭터의 이름과 설정이 주어집니다. 
 - "${nameA}": "${descA}"
@@ -61,15 +59,15 @@ export default async function handler(req, res) {
     res.setHeader('Allow', ['POST']); return res.status(405).end('Method Not Allowed');
   }
   try {
-    const me = getUserFromCookie(req);
-    if (!me) return res.status(401).json({ error: 'login required' });
+    const s = getUserFromCookie(req);
+    if (!s) return res.status(401).json({ error: 'login required' });
+    if (s.role !== 'character' || !s.id) return res.status(403).json({ error: 'character only' });
 
-    // 내 캐릭터
-    const { rows: myRows } = await sql`select * from characters where id=${me.id} limit 1`;
+    const { rows: myRows } = await sql`select * from characters where id=${s.id} limit 1`;
     if (!myRows.length) return res.status(401).json({ error: 'login required' });
     const A = myRows[0];
 
-    // 1분 쿨다운 (서버 강제)
+    // 1분 쿨다운
     const { rows: last } = await sql`
       select created_at from battles where a_id=${A.id} or b_id=${A.id}
       order by created_at desc limit 1`;
@@ -79,7 +77,7 @@ export default async function handler(req, res) {
       if (remain > 0) return res.status(429).json({ error: 'cooldown', remain });
     }
 
-    // 이전에 싸운 적 없는 상대를 랜덤 선택
+    // 이전에 싸운 적 없는 상대
     const { rows: opp } = await sql`
       select * from characters c
       where c.id <> ${A.id}
@@ -87,58 +85,45 @@ export default async function handler(req, res) {
         select 1 from battles b
         where (b.a_id=${A.id} and b.b_id=c.id) or (b.a_id=c.id and b.b_id=${A.id})
       )
-      order by random()
-      limit 1`;
+      order by random() limit 1`;
     if (!opp.length) return res.status(409).json({ error: 'no available opponent' });
     const B = opp[0];
 
-    // 판정 (프롬프트 그대로)
     const verdict = await judgeBattle(A.name, B.name, A.description, B.description);
     let winner_id = null;
     if (verdict.winner === A.name) winner_id = A.id;
     else if (verdict.winner === B.name) winner_id = B.id;
-    else winner_id = null;
 
-    // 트랜잭션: 전적/ELO 갱신 + 배틀 기록 (유니크 쌍 보장)
-    const result = await sql.begin(async (tx) => {
+    await sql.begin(async (tx) => {
       let aElo = A.elo, bElo = B.elo;
       if (winner_id === A.id) {
         aElo = updateElo(A.elo, B.elo, 1);
         bElo = updateElo(B.elo, A.elo, 0);
-        await tx`update characters set wins = wins + 1, elo = ${aElo} where id=${A.id}`;
-        await tx`update characters set losses = losses + 1, elo = ${bElo} where id=${B.id}`;
+        await tx`update characters set wins=wins+1, elo=${aElo} where id=${A.id}`;
+        await tx`update characters set losses=losses+1, elo=${bElo} where id=${B.id}`;
       } else if (winner_id === B.id) {
         aElo = updateElo(A.elo, B.elo, 0);
         bElo = updateElo(B.elo, A.elo, 1);
-        await tx`update characters set losses = losses + 1, elo = ${aElo} where id=${A.id}`;
-        await tx`update characters set wins = wins + 1, elo = ${bElo} where id=${B.id}`;
+        await tx`update characters set losses=losses+1, elo=${aElo} where id=${A.id}`;
+        await tx`update characters set wins=wins+1, elo=${bElo} where id=${B.id}`;
       } else {
         aElo = updateElo(A.elo, B.elo, 0.5);
         bElo = updateElo(B.elo, A.elo, 0.5);
-        await tx`update characters set elo = ${aElo} where id=${A.id}`;
-        await tx`update characters set elo = ${bElo} where id=${B.id}`;
+        await tx`update characters set elo=${aElo} where id=${A.id}`;
+        await tx`update characters set elo=${bElo} where id=${B.id}`;
       }
-
       await tx`
         insert into battles(a_id, b_id, winner_id, reason, log_json)
         values (${A.id}, ${B.id}, ${winner_id}, ${verdict.log}, ${JSON.stringify(verdict.log)})`;
-
-      return { aElo, bElo };
     });
 
-    // 최신 값으로 응답
     const { rows: aNow } = await sql`select * from characters where id=${A.id}`;
     const { rows: bNow } = await sql`select * from characters where id=${B.id}`;
 
     res.status(200).json({
       A: aNow[0],
       B: bNow[0],
-      result: {
-        winner: verdict.winner,
-        winner_id,
-        reason: verdict.log,
-        log: verdict.log
-      }
+      result: { winner: verdict.winner, winner_id, reason: verdict.log, log: verdict.log }
     });
   } catch (e) {
     res.status(500).json({ error: String(e) });
