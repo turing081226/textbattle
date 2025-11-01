@@ -79,9 +79,6 @@
         <button id="logoutBtn">로그아웃</button>
       </div>
       <div id="loginMsg" class="muted"></div>
-      <div class="muted" style="margin-top:8px;">
-        최초 관리자: <b>아이디 admin / 비밀번호 neuron</b>
-      </div>
     </div>
 
     <!-- 내 전적 + 다음 배틀 -->
@@ -288,7 +285,7 @@
         const winnerName = result.winner === 'draw' ? '무승부' : result.winner;
         fightRes.innerHTML = `
           <p><b>${A.name}</b>(${A.elo}) vs <b>${B.name}</b>(${B.elo})</p>
-          <p><b>결과:</b> ${winnerName}</p>
+          <p><b>결과:</b> ${winnerName} 승리!</p>
           <div class="log">${result.log}</div>
         `;
         localStorage.setItem(CD_KEY, String(Date.now()+60000));
