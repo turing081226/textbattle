@@ -1,154 +1,220 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>텍스트 배틀 (Vercel)</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 860px; margin: 24px auto; padding: 0 12px; }
-    h1 { margin-bottom: 4px; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin: 12px 0; }
-    input, textarea, button, select { font-size: 16px; padding: 8px; }
-    textarea { width: 100%; height: 64px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border-bottom: 1px solid #eee; padding: 8px; text-align: left; }
-    .log { background: #fafafa; padding: 8px; border-radius: 8px; white-space: pre-wrap; }
-    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .counter-row{display:flex;justify-content:flex-end;margin-top:4px}
-    .counter{font-size:12px;color:#666}
-    .counter.warn{color:#c00;font-weight:600}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>텍스트 배틀 (Vercel)</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 900px; margin: 24px auto; padding: 0 12px; }
+  h1 { margin: 8px 0 16px; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; }
+  input, textarea, button, select { font-size: 16px; padding: 8px; }
+  textarea { width: 100%; height: 64px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border-bottom: 1px solid #eee; padding: 8px; text-align: left; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .right { text-align:right; }
+  .muted { color:#666; font-size:12px; }
+  .log { white-space: pre-wrap; background:#fafafa; padding:8px; border-radius:8px; }
+  .warn { color:#c00; font-weight:600; }
+</style>
 </head>
 <body>
-  <h1>텍스트 배틀 (Vercel)</h1>
-  <p>캐릭터를 만들고 <b>내 캐릭터 vs 랜덤</b>으로 대결하세요.</p>
+<h1>텍스트 배틀</h1>
 
-  <div class="card">
-    <h3>캐릭터 만들기</h3>
-    <label>이름
-      <input id="name" maxlength="24" placeholder="예: 천둥검사"/>
-    </label>
-    <div class="counter-row"><span id="nameCounter" class="counter">0/24</span></div>
-
-    <br/>
-    <label>설정 (100자)
-      <textarea id="desc" maxlength="100"
-        placeholder="예: 번개를 두른 도검을 휘둘러 빠르게 제압한다. 비에 젖으면 힘이 강해진다."></textarea>
-    </label>
-    <div class="counter-row"><span id="descCounter" class="counter">0/100</span></div>
-
-    <br/>
-    <button id="create">등록</button>
-    <div id="createMsg"></div>
+<div class="grid">
+  <!-- Admin: 캐릭터 생성 -->
+  <div class="card" id="adminBlock">
+    <h3>Admin: 캐릭터 만들기</h3>
+    <div class="row">
+      <label>이름 <input id="cName" maxlength="24" placeholder="예: 천둥검사"></label>
+    </div>
+    <div class="row">
+      <label>설정(100자) <textarea id="cDesc" maxlength="100" placeholder="예: 번개를 두른 도검..."></textarea></label>
+    </div>
+    <div class="row">
+      <label>비밀번호(고정) <input id="cPass" value="Neuron" disabled></label>
+      <button id="createBtn">생성 & 로그인</button>
+    </div>
+    <div id="createMsg" class="muted"></div>
   </div>
 
-  <div class="card">
-    <h3>내 캐릭터 vs 랜덤 상대</h3>
+  <!-- 로그인 -->
+  <div class="card" id="loginBlock">
+    <h3>캐릭터 로그인</h3>
     <div class="row">
-      <label>내 캐릭터
-        <select id="myChar"></select>
-      </label>
-      <button id="fightMy">대결!</button>
+      <label>이름 <input id="loginName" placeholder="캐릭터 이름"></label>
+      <label>비밀번호 <input id="loginPass" type="password" placeholder="Neuron"></label>
+      <button id="loginBtn">로그인</button>
+      <button id="logoutBtn">로그아웃</button>
+    </div>
+    <div id="loginMsg" class="muted"></div>
+  </div>
+
+  <!-- 내 전적 + 다음 배틀 -->
+  <div class="card" id="meBlock" style="display:none;">
+    <h3>내 정보</h3>
+    <div id="meInfo" class="muted"></div>
+    <div class="row">
+      <button id="fightBtn">다음 배틀</button>
+      <span id="cooldown" class="muted"></span>
     </div>
     <div id="fightRes"></div>
   </div>
 
+  <!-- 리더보드 -->
   <div class="card">
-    <h3>리더보드 (상위 50)</h3>
+    <h3>리더보드</h3>
     <table id="lb"><thead><tr><th>이름</th><th>ELO</th><th>전적</th><th>설정</th></tr></thead><tbody></tbody></table>
+    <div class="muted">이름을 클릭하면 해당 캐릭터의 전적을 확인할 수 있어요.</div>
   </div>
 
-  <script>
-    // --- 글자수 카운터 ---
-    const nameEl = document.getElementById('name');
-    const descEl = document.getElementById('desc');
-    const nameCounter = document.getElementById('nameCounter');
-    const descCounter = document.getElementById('descCounter');
-    const createBtn = document.getElementById('create');
+  <!-- 캐릭터 전적 상세 -->
+  <div class="card" id="detailBlock" style="display:none;">
+    <h3 id="detailTitle">전적</h3>
+    <div id="detailBody"></div>
+  </div>
+</div>
 
-    function updateCounter(el, counterEl) {
-      const max = el.maxLength > 0 ? el.maxLength : 0;
-      const len = el.value.length;
-      counterEl.textContent = `${len}/${max}`;
-      counterEl.classList.toggle('warn', max && (max - len) <= 5);
+<script>
+  const $ = s=>document.querySelector(s);
+  const meBlock = $('#meBlock'), meInfo = $('#meInfo');
+  const fightBtn = $('#fightBtn'), cdSpan = $('#cooldown'), fightRes = $('#fightRes');
+
+  async function api(url, opts={}) {
+    if (opts.body && typeof opts.body !== 'string') {
+      opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
+      opts.body = JSON.stringify(opts.body);
     }
-    function toggleCreate() {
-      createBtn.disabled = !nameEl.value.trim() || !descEl.value.trim();
-    }
-    ['input','change'].forEach(evt=>{
-      nameEl.addEventListener(evt, ()=>{updateCounter(nameEl, nameCounter); toggleCreate();});
-      descEl.addEventListener(evt, ()=>{updateCounter(descEl, descCounter); toggleCreate();});
+    const r = await fetch(url, opts);
+    const j = await r.json().catch(()=> ({}));
+    if (!r.ok) throw j;
+    return j;
+  }
+
+  async function refreshLB() {
+    const data = await api('/api/leaderboard');
+    const tbody = $('#lb tbody'); tbody.innerHTML='';
+    data.forEach(c=>{
+      const tr = document.createElement('tr');
+      const a = document.createElement('a');
+      a.href = '#'; a.textContent = c.name;
+      a.onclick = async (e)=>{ e.preventDefault(); openDetail(c.id); };
+      tr.innerHTML = `<td></td><td>${c.elo}</td><td>${c.wins}승 ${c.losses}패</td><td>${c.description}</td>`;
+      tr.children[0].appendChild(a);
+      tbody.appendChild(tr);
     });
-    updateCounter(nameEl, nameCounter); updateCounter(descEl, descCounter); toggleCreate();
+  }
 
-    // --- API helpers ---
-    async function refreshLB() {
-      const r = await fetch('/api/leaderboard');
-      const data = await r.json();
-      const tbody = document.querySelector('#lb tbody');
-      tbody.innerHTML = '';
-      data.forEach(c => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${c.name}</td><td>${c.elo}</td><td>${c.wins}승 ${c.losses}패</td><td>${c.description}</td>`;
-        tbody.appendChild(tr);
+  async function openDetail(id) {
+    const { user, battles } = await api('/api/records?id=' + id);
+    $('#detailTitle').textContent = `#${user.id} ${user.name} 전적 (${user.wins}승 ${user.losses}패, ELO ${user.elo})`;
+    const box = $('#detailBody'); box.innerHTML='';
+    if (!battles.length) {
+      box.textContent = '전투 기록이 없습니다.'; 
+    } else {
+      const ul = document.createElement('ul');
+      battles.forEach(b=>{
+        const opp = (b.a_id===user.id)? {id:b.b_id, name:b.b_name} : {id:b.a_id, name:b.a_name};
+        const wl = (b.winner_id===user.id)? '승' : (b.winner_id==null)? '무' : '패';
+        const li = document.createElement('li');
+        li.textContent = `[${new Date(b.created_at).toLocaleString()}] vs ${opp.name} → ${wl}`;
+        ul.appendChild(li);
       });
+      box.appendChild(ul);
     }
-    async function refreshMySelect() {
-      const r = await fetch('/api/characters');
-      const data = await r.json();
-      const sel = document.querySelector('#myChar');
-      sel.innerHTML = '';
-      data.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.id;
-        opt.textContent = `#${c.id} ${c.name} (ELO ${c.elo})`;
-        sel.appendChild(opt);
-      });
+    $('#detailBlock').style.display = 'block';
+  }
+
+  async function refreshMe() {
+    const { user } = await api('/api/auth/me');
+    if (user) {
+      meBlock.style.display = '';
+      meInfo.textContent = `#${user.id} ${user.name} — ELO ${user.elo}, ${user.wins}승 ${user.losses}패`;
+    } else {
+      meBlock.style.display = 'none';
+      meInfo.textContent = '';
     }
+  }
 
-    document.getElementById('create').onclick = async () => {
-      const name = nameEl.value.trim();
-      const description = descEl.value.trim();
-      const r = await fetch('/api/characters', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ name, description })
-      });
-      const el = document.getElementById('createMsg');
-      if (!r.ok) {
-        el.textContent = '등록 실패: ' + (await r.text());
-      } else {
-        const c = await r.json();
-        el.textContent = `등록 완료: #${c.id} ${c.name}`;
-        nameEl.value=''; descEl.value='';
-        updateCounter(nameEl, nameCounter); updateCounter(descEl, descCounter); toggleCreate();
-        await refreshLB(); await refreshMySelect();
-      }
-    };
+  // --- Admin 생성 ---
+  $('#createBtn').onclick = async ()=>{
+    const name = $('#cName').value.trim();
+    const description = $('#cDesc').value.trim();
+    if (!name || !description) { $('#createMsg').textContent='이름/설정을 입력하세요.'; return; }
+    try {
+      const u = await api('/api/characters', { method:'POST', body:{ name, description } });
+      $('#createMsg').textContent = `생성 완료: #${u.id} ${u.name} (자동 로그인됨)`;
+      await refreshMe(); await refreshLB();
+    } catch(e) {
+      $('#createMsg').textContent = '생성 실패: ' + (e.error || 'unknown');
+    }
+  };
 
-    document.getElementById('fightMy').onclick = async () => {
-      const my_id = Number(document.querySelector('#myChar').value);
-      const res = document.getElementById('fightRes');
-      if (!my_id) { res.textContent = '내 캐릭터를 선택하세요.'; return; }
-      res.textContent = '대결 중...';
-      const r = await fetch('/api/fight', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ my_id })
-      });
-      const data = await r.json();
-      if (!r.ok) { res.textContent = '오류: ' + (data?.error || '요청 실패'); return; }
+  // --- 로그인/로그아웃 ---
+  $('#loginBtn').onclick = async ()=>{
+    const name = $('#loginName').value.trim();
+    const password = $('#loginPass').value || 'Neuron';
+    try {
+      await api('/api/auth/login', { method:'POST', body:{ name, password } });
+      $('#loginMsg').textContent = '로그인 성공';
+      await refreshMe();
+    } catch(e) {
+      $('#loginMsg').textContent = '로그인 실패';
+    }
+  };
+  $('#logoutBtn').onclick = async ()=>{
+    await api('/api/auth/logout'); $('#loginMsg').textContent='로그아웃됨';
+    await refreshMe();
+  };
+
+  // --- 다음 배틀 (+ 1분 클라 쿨다운 보조) ---
+  const CD_KEY = 'battleCooldownUntil';
+  function updateCooldownUI() {
+    const until = Number(localStorage.getItem(CD_KEY)||'0');
+    const remain = Math.ceil((until - Date.now())/1000);
+    if (remain > 0) {
+      fightBtn.disabled = true;
+      cdSpan.textContent = `쿨다운 ${remain}s`;
+    } else {
+      fightBtn.disabled = false;
+      cdSpan.textContent = '';
+    }
+  }
+  setInterval(updateCooldownUI, 500);
+
+  fightBtn.onclick = async ()=>{
+    try {
+      fightRes.textContent = '대결 중...';
+      const data = await api('/api/fight', { method:'POST' });
       const { A, B, result } = data;
       const winnerName = result.winner === 'draw' ? '무승부' : result.winner;
-      res.innerHTML = `
+      fightRes.innerHTML = `
         <p><b>${A.name}</b>(${A.elo}) vs <b>${B.name}</b>(${B.elo})</p>
         <p><b>결과:</b> ${winnerName}</p>
-        <p><b>해설:</b> ${result.reason}</p>
-        <pre class="log">${result.log}</pre>
+        <div class="log">${result.log}</div>
       `;
-      await refreshLB(); await refreshMySelect();
-    };
+      // 클라 쿨다운 60s
+      localStorage.setItem(CD_KEY, String(Date.now()+60000));
+      updateCooldownUI();
+      await refreshMe(); await refreshLB();
+    } catch(e) {
+      if (e.error==='cooldown') {
+        const until = Date.now() + (e.remain*1000);
+        localStorage.setItem(CD_KEY, String(until));
+        updateCooldownUI();
+        fightRes.innerHTML = `<span class="warn">쿨다운 중입니다. ${e.remain}s 후 재시도</span>`;
+      } else if (e.error==='no available opponent') {
+        fightRes.innerHTML = `<span class="warn">더 이상 대전 가능한 상대가 없습니다.</span>`;
+      } else {
+        fightRes.textContent = '에러: ' + (e.error || 'unknown');
+      }
+    }
+  };
 
-    (async () => { await refreshLB(); await refreshMySelect(); })();
-  </script>
+  // 초기 로드
+  (async ()=>{ await refreshMe(); await refreshLB(); updateCooldownUI(); })();
+</script>
 </body>
 </html>
