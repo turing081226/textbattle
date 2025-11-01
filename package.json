@@ -1,0 +1,13 @@
+{
+  "name": "text-battle-vercel",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@vercel/postgres": "^0.9.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
