@@ -36,7 +36,7 @@ function tryExtractJSON(text) {
 
 async function judgeBattle(nameA, nameB, descA, descB) {
   if (!process.env.GEMINI_API_KEY) {
-    console.warn('[judgeBattle] GEMINI_API_KEY missing');
+    warn('GEMINI_API_KEY missing');
     return null;
   }
 
@@ -57,6 +57,8 @@ async function judgeBattle(nameA, nameB, descA, descB) {
 }
   `.trim();
 
+  dbg('Gemini request start', { A: nameA, B: nameB });
+
   let resp;
   try {
     resp = await fetch(
@@ -69,62 +71,57 @@ async function judgeBattle(nameA, nameB, descA, descB) {
           generationConfig: {
             temperature: 0.4,
             maxOutputTokens: 300,
-            // ⬇️ JSON 강제 (지원 모델에서 효과 큼)
-            responseMimeType: 'application/json',
-            // 선택: 스키마 힌트 (미지원이면 무시됨)
-            responseSchema: {
-              type: 'object',
-              properties: {
-                winner: { type: 'string' },
-                log: { type: 'string' }
-              },
-              required: ['winner','log']
-            }
+            responseMimeType: 'application/json'
           }
         })
       }
     );
   } catch (netErr) {
-    console.error('[judgeBattle] fetch error:', netErr);
+    err('fetch error', netErr?.message || netErr);
     return null;
   }
+
+  dbg('Gemini HTTP status', resp.status);
 
   let data;
   try {
     data = await resp.json();
   } catch (parseHTTP) {
-    console.error('[judgeBattle] http json parse fail:', parseHTTP);
+    err('response JSON parse fail', parseHTTP?.message || parseHTTP);
     return null;
   }
 
-  // 안전정책 차단/후보 없음 케이스
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) {
-    console.warn('[judgeBattle] no text candidate:', JSON.stringify(data?.promptFeedback || data));
+    warn('no candidate text', t(data?.promptFeedback || data));
     return null;
   }
 
-  // JSON 파싱 (느슨하게 복구 시도)
-  const raw = tryExtractJSON(text);
-  if (!raw) {
-    console.warn('[judgeBattle] cannot extract JSON from text:', text);
-    return null;
-  }
+  // 후보 텍스트 샘플(앞부분만)
+  dbg('candidate text', t(text, 200));
 
-  // 스키마 검증
-  let out;
+  // JSON 추출 & 검증
+  let raw;
   try {
-    out = VerdictSchema.parse(raw);
-  } catch (zerr) {
-    console.warn('[judgeBattle] schema mismatch:', zerr?.errors, 'raw=', raw);
+    // 코드펜스 제거 + 첫 {} 블록만 파싱
+    const cleaned = text.replace(/```json|```/gi, '').trim();
+    const m = cleaned.match(/\{[\s\S]*\}/);
+    raw = JSON.parse(m ? m[0] : cleaned);
+  } catch (pe) {
+    warn('candidate not valid JSON', t(text));
     return null;
   }
 
-  // 승자 값 검증 (반드시 nameA 또는 nameB)
-  if (out.winner !== nameA && out.winner !== nameB) {
-    console.warn('[judgeBattle] invalid winner:', out.winner, 'expected:', nameA, nameB);
+  if (typeof raw?.winner !== 'string' || typeof raw?.log !== 'string') {
+    warn('schema mismatch', raw);
+    return null;
+  }
+  if (raw.winner !== nameA && raw.winner !== nameB) {
+    warn('invalid winner', raw.winner, 'expected', nameA, nameB);
     return null;
   }
 
-  return out;
+  dbg('Gemini verdict OK', { winner: raw.winner });
+  return raw;
 }
+
