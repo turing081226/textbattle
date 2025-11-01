@@ -9,9 +9,9 @@ export async function readJSON(req) {
 }
 
 export function setSessionCookie(res, payload) {
+  // payload 예: { id, name, role }
   const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
-  const isLocal = (typeof window === 'undefined') && (process.env.VERCEL === '1' ? false : true);
-  const secure = isLocal ? '' : 'Secure; ';
+  const secure = process.env.VERCEL ? 'Secure; ' : '';
   res.setHeader('Set-Cookie',
     `session=${token}; Path=/; HttpOnly; SameSite=Lax; ${secure}Max-Age=${7*24*3600}`);
 }
