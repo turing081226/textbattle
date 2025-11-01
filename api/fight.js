@@ -6,6 +6,19 @@ const VerdictSchema = z.object({
   log: z.string().min(1)
 });
 
+const DEBUG = process.env.LOG_DEBUG === '1';
+
+function t(x, max=300) { // truncate helper
+  if (x == null) return '';
+  const s = typeof x === 'string' ? x : JSON.stringify(x);
+  return s.length > max ? s.slice(0, max) + '…(truncated)' : s;
+}
+
+function dbg(...args) { if (DEBUG) console.log('[fight]', ...args); }
+function warn(...args) { console.warn('[fight]', ...args); }
+function err(...args) { console.error('[fight]', ...args); }
+// =========================
+
 // 백틱/여분 텍스트가 섞여도 JSON만 추출해보는 보조 파서
 function tryExtractJSON(text) {
   if (!text || typeof text !== 'string') return null;
