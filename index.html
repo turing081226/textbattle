@@ -1,293 +1,319 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TextBattle</title>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>텍스트 배틀</title>
   <style>
-    :root{
-      --bg:#0b1020;          /* page bg */
-      --card:#0f172a99;      /* glass card */
-      --border:#ffffff1a;    /* subtle borders */
-      --txt:#e5e7eb;         /* primary text */
-      --muted:#94a3b8;       /* secondary text */
-      --accent:#7c3aed;      /* main accent */
-      --accent-2:#22d3ee;    /* secondary accent */
-      --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
-      --radius:18px;         /* uniform rounding */
-      --shadow-sm:0 1px 2px rgba(0,0,0,.25);
-      --shadow-md:0 8px 24px rgba(0,0,0,.35);
-      --glass-blur:12px;
-      --focus:0 0 0 3px color-mix(in oklab, var(--accent) 60%, transparent);
+    :root {
+      --fg:#111; --muted:#666; --line:#e6e6e6; --bg:#fff; --accent:#3b82f6; --warn:#c00;
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:Inter,system-ui,Segoe UI,Apple SD Gothic Neo,Apple Color Emoji,EmojiOne Color,Segoe UI Emoji,sans-serif; color:var(--txt);
-      background: radial-gradient(1200px 1200px at 10% -10%, #1b2659 0, transparent 50%),
-                  radial-gradient(1200px 1000px at 110% 0%, #0a5a7a 0, transparent 50%),
-                  linear-gradient(180deg, #070b18 0%, #0b1020 60%, #0b1020 100%);
-      background-attachment: fixed;
-    }
-    .wrap{max-width:1100px;margin:0 auto;padding:32px 14px 48px}
-    header{
-      display:flex;align-items:center;gap:14px;justify-content:space-between;margin-bottom:22px
-    }
-    .brand{display:flex;align-items:center;gap:12px}
-    .logo{
-      width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
-      background:linear-gradient(135deg, var(--accent), var(--accent-2));
-      box-shadow:var(--shadow-sm);
-    }
-    .logo svg{width:22px;height:22px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
-    .title{font-weight:800;letter-spacing:.2px}
-    .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#ffffff1a;color:#fff;border:1px solid var(--border)}
-
-    .grid{display:grid;gap:16px;grid-template-columns: repeat(12, minmax(0,1fr))}
-    .col-7{grid-column: span 7}
-    .col-5{grid-column: span 5}
-    .col-12{grid-column: span 12}
-    @media (max-width: 920px){.col-7,.col-5{grid-column:span 12}}
-
-    .card{
-      background: color-mix(in oklab, var(--card) 100%, transparent);
-      backdrop-filter: blur(var(--glass-blur));
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-md);
-      padding:18px;
-    }
-    .card h2{margin:2px 0 10px;font-size:18px;font-weight:700}
-    .card p.helper{margin:0 0 14px;color:var(--muted);font-size:13px}
-
-    .row{display:grid;gap:12px;grid-template-columns:repeat(12, minmax(0,1fr));align-items:end}
-    .row > .field{grid-column: span 12}
-    .row > .field.half{grid-column: span 6}
-    @media (max-width:720px){.row > .field.half{grid-column:span 12}}
-
-    label{display:block;margin:3px 0 6px;font-size:12px;color:var(--muted)}
-    input,select,button,textarea{
-      font:inherit;color:inherit
-    }
-    input[type="text"],input[type="number"],input[type="password"],select,textarea{
-      width:100%;padding:12px 12px;border-radius:12px;border:1px solid var(--border);background:#0b132b;outline:none;
-      transition:.2s box-shadow,.2s border-color,.2s background;
-    }
-    input::placeholder{color:#8ea0b3}
-    input:focus,select:focus,textarea:focus{box-shadow:var(--focus);border-color:color-mix(in oklab, var(--accent) 40%, var(--border))}
-
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;user-select:none;
-      padding:11px 14px;border-radius:12px;border:1px solid var(--border);
-      background:linear-gradient(180deg, color-mix(in oklab, var(--accent) 28%, #151b30 72%), #12172c);
-      font-weight:700; letter-spacing:.2px;
-      transition:.15s transform, .2s filter, .2s background;
-    }
-    .btn:hover{filter:brightness(1.08)}
-    .btn:active{transform:translateY(1px)}
-    .btn.secondary{background:#0f172a}
-    .btn.ghost{background:transparent}
-
-    .section-title{display:flex;align-items:center;gap:10px;margin:4px 0 10px}
-    .section-title span.dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
-
-    .log{height:240px;background:#090f20;border:1px solid var(--border);border-radius:12px;padding:12px;overflow:auto;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:13px;line-height:1.4}
-    .muted{color:var(--muted)}
-
-    table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden}
-    thead th{font-size:12px;text-align:left;color:var(--muted);font-weight:600;background:#0d142b;border-bottom:1px solid var(--border);padding:10px 12px}
-    tbody td{padding:12px;border-bottom:1px dashed var(--border)}
-    tbody tr:last-child td{border-bottom:none}
-
-    footer{margin-top:22px;color:var(--muted);font-size:12px;display:flex;gap:10px;align-items:center;justify-content:space-between}
-    .links{display:flex;gap:12px;flex-wrap:wrap}
-
-    /* subtle enter animation */
-    .fade-in{animation:fade .4s ease-out both}
-    @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
-    .pill{border:1px solid var(--border);background:#0d142b;padding:6px 10px;border-radius:999px;font-size:12px}
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Arial, sans-serif;
+           color:var(--fg); background:var(--bg); max-width: 960px; margin: 24px auto; padding: 0 12px; }
+    h1 { margin: 8px 0 16px; font-weight:700; }
+    .grid { display:grid; grid-template-columns: 1fr; gap: 12px; }
+    .card { border: 1px solid var(--line); border-radius: 12px; padding: 16px; background:#fff; }
+    input, textarea, button, select { font: inherit; padding: 8px; }
+    input, textarea, select { border:1px solid var(--line); border-radius:8px; width:100%; }
+    textarea { height: 72px; resize: vertical; }
+    button { border:1px solid var(--line); border-radius:10px; background:#f8f8f8; cursor:pointer; }
+    button:hover { background:#f1f5ff; border-color:#cfe0ff }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid var(--line); padding: 10px 8px; text-align: left; }
+    .row { display:flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .muted { color:var(--muted); font-size:12px; }
+    .right { text-align:right; }
+    .log { white-space: pre-wrap; background:#fafafa; padding:10px; border-radius:10px; border:1px solid var(--line); }
+    .warn { color:var(--warn); font-weight:600; }
+    .ok { color:#107c10; font-weight:600; }
+    .errorbar { background:#fff4f4; border:1px solid #ffd6d6; color:#a40000; padding:10px 12px; border-radius:10px; margin:12px 0; display:none; }
+    .linklike { color: var(--accent); text-decoration: none; cursor:pointer; }
+    .pill { display:inline-block; padding:2px 8px; border:1px solid var(--line); border-radius:999px; font-size:12px; color:#444; }
+    .counter-row{display:flex;justify-content:flex-end;margin-top:4px}
+    .counter{font-size:12px;color:#666}
+    .counter.warn{color:#c00;font-weight:600}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="fade-in">
-      <div class="brand">
-        <div class="logo" aria-hidden="true">
-          <!-- sword icon -->
-          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M14 6l7-3-3 7-9 9-4 1 1-4 9-9z"/>
-            <path d="M10 10l4 4"/>
-          </svg>
-        </div>
-        <div>
-          <div class="title">TextBattle</div>
-          <div class="muted" style="font-size:12px">텍스트 전투를 더 세련되게 ⚔️</div>
-        </div>
+  <h1>텍스트 배틀</h1>
+
+  <div id="errorBar" class="errorbar"></div>
+
+  <div class="grid">
+    <!-- Admin: 캐릭터 만들기 -->
+    <div class="card" id="adminBlock" style="display:none;">
+      <h3>Admin: 캐릭터 만들기</h3>
+      <div class="row">
+        <label style="flex:1 1 260px;">이름
+          <input id="cName" maxlength="24" placeholder="예: 천둥검사">
+        </label>
+        <span id="nameCounter" class="muted pill">0/24</span>
       </div>
-      <span class="badge">beta</span>
-    </header>
-
-    <!-- MAIN GRID -->
-    <div class="grid fade-in" style="animation-delay:.06s">
-      <!-- LEFT: create / join -->
-      <section class="card col-7" id="leftPanel">
-        <h2>방 만들기</h2>
-        <p class="helper">닉네임과 캐릭터를 고르고 비밀키(옵션)를 설정해 새 전투를 시작.</p>
-        <form id="createForm" class="row" autocomplete="off">
-          <div class="field half">
-            <label for="nickname">닉네임</label>
-            <input id="nickname" name="nickname" type="text" placeholder="예) PinkNeon" required />
-          </div>
-          <div class="field half">
-            <label for="character">캐릭터</label>
-            <select id="character" name="character" aria-label="캐릭터 선택">
-              <option value="warrior">전사</option>
-              <option value="mage">마법사</option>
-              <option value="rogue">도적</option>
-              <option value="paladin">성기사</option>
-            </select>
-          </div>
-          <div class="field half">
-            <label for="roomName">방 이름</label>
-            <input id="roomName" name="roomName" type="text" placeholder="예) Friday Night" />
-          </div>
-          <div class="field half">
-            <label for="secret">비밀키 (옵션)</label>
-            <input id="secret" name="secret" type="password" placeholder="방 잠금용" />
-          </div>
-          <div class="field" style="display:flex; gap:10px;flex-wrap:wrap">
-            <button class="btn" id="btnCreate" type="submit">전투 시작</button>
-            <button class="btn secondary" id="btnReset" type="button">초기화</button>
-          </div>
-        </form>
-
-        <hr style="border:none;border-top:1px solid var(--border);margin:18px 0"/>
-
-        <h2 style="margin-top:2px">참가하기</h2>
-        <p class="helper">방 코드로 입장합니다. 비밀키가 있다면 같이 입력해 주세요.</p>
-        <form id="joinForm" class="row" autocomplete="off">
-          <div class="field half">
-            <label for="joinCode">방 코드</label>
-            <input id="joinCode" name="joinCode" type="text" placeholder="예) TB-8A2K" required />
-          </div>
-          <div class="field half">
-            <label for="joinName">닉네임</label>
-            <input id="joinName" name="joinName" type="text" placeholder="Your name" required />
-          </div>
-          <div class="field half">
-            <label for="joinSecret">비밀키 (있다면)</label>
-            <input id="joinSecret" name="joinSecret" type="password" />
-          </div>
-          <div class="field">
-            <button class="btn" id="btnJoin" type="submit">입장</button>
-          </div>
-        </form>
-      </section>
-
-      <!-- RIGHT: status / log -->
-      <aside class="col-5" id="rightPanel">
-        <section class="card" style="margin-bottom:16px">
-          <div class="section-title">
-            <span class="dot" aria-hidden="true"></span>
-            <h2 style="margin:0">현재 전투 상태</h2>
-            <span class="pill" id="roomCodePill" title="방 코드">대기 중</span>
-          </div>
-          <div class="muted" id="statusText">방을 생성하거나 입장하면 상태가 표시됩니다.</div>
-        </section>
-
-        <section class="card">
-          <div class="section-title">
-            <span class="dot" style="background:var(--accent-2)" aria-hidden="true"></span>
-            <h2 style="margin:0">전투 로그</h2>
-          </div>
-          <div id="log" class="log" aria-live="polite"></div>
-        </section>
-      </aside>
-
-      <!-- FULL-WIDTH: leaderboard -->
-      <section class="card col-12" id="board">
-        <div class="section-title">
-          <span class="dot" style="background:var(--good)"></span>
-          <h2 style="margin:0">리더보드</h2>
-        </div>
-        <div class="muted" style="margin-bottom:10px">최근 경기 순위 (예시 UI, 데이터 연결 시 자동 표출)</div>
-        <div style="overflow:auto">
-          <table aria-describedby="리더보드표">
-            <thead>
-              <tr>
-                <th style="width:64px">#</th>
-                <th>플레이어</th>
-                <th>캐릭터</th>
-                <th>승</th>
-                <th>패</th>
-                <th>ELO</th>
-              </tr>
-            </thead>
-            <tbody id="leaderbody">
-              <tr><td>1</td><td>DemoOne</td><td>전사</td><td>5</td><td>1</td><td>1234</td></tr>
-              <tr><td>2</td><td>DemoTwo</td><td>마법사</td><td>4</td><td>2</td><td>1196</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <div class="row" style="align-items:flex-start;">
+        <label style="flex:1 1 520px;">설정 (100자)
+          <textarea id="cDesc" maxlength="100" placeholder="예: 번개를 두른 도검을 휘둘러 빠르게 제압한다. 비에 젖으면 힘이 강해진다."></textarea>
+        </label>
+        <span id="descCounter" class="muted pill">0/100</span>
+      </div>
+      <div class="row">
+        <label style="flex:1 1 260px;">비밀번호
+          <input id="cPass" type="password" placeholder="4자 이상">
+        </label>
+        <button id="createBtn">생성 & 로그인</button>
+      </div>
+      <div id="createMsg" class="muted"></div>
     </div>
 
-    <footer class="fade-in" style="animation-delay:.1s">
-      <div class="links">
-        <span class="muted">© 2025 TextBattle</span>
-        <a class="pill" href="/" aria-label="홈으로">홈</a>
-        <a class="pill" href="#board">리더보드</a>
-        <a class="pill" href="#log">로그</a>
+    <!-- 로그인 -->
+    <div class="card" id="loginBlock">
+      <h3>로그인</h3>
+      <div class="row" style="gap:12px;">
+        <label style="flex:1 1 240px;">이름
+          <input id="loginName" placeholder="캐릭터 이름">
+        </label>
+        <label style="flex:1 1 240px;">비밀번호
+          <input id="loginPass" type="password" placeholder="비밀번호">
+        </label>
+        <button id="loginBtn">로그인</button>
+        <button id="logoutBtn">로그아웃</button>
       </div>
-      <div class="muted">UI만 개선된 정적 페이지 · 기존 API 스크립트와 쉽게 통합</div>
-    </footer>
+      <div id="loginMsg" class="muted"></div>
+    </div>
+
+    <!-- 내 전적 + 다음 배틀 -->
+    <div class="card" id="meBlock" style="display:none;">
+      <div class="row" style="justify-content:space-between;">
+        <h3 style="margin:0;">내 정보</h3>
+        <span id="meBadge" class="pill">character</span>
+      </div>
+      <div id="meInfo" class="muted"></div>
+      <div class="row" style="margin-top:8px;">
+        <button id="fightBtn">다음 배틀</button>
+        <span id="cooldown" class="muted"></span>
+      </div>
+      <div id="fightRes" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- 리더보드 -->
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <h3 style="margin:0;">리더보드</h3>
+        <span class="muted">이름을 클릭하면 전적 상세</span>
+      </div>
+      <table id="lb">
+        <thead><tr><th>이름</th><th>ELO</th><th>전적</th><th>설정</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- 캐릭터 전적 상세 -->
+    <div class="card" id="detailBlock" style="display:none;">
+      <h3 id="detailTitle">전적</h3>
+      <div id="detailBody" class="muted">불러오는 중…</div>
+    </div>
   </div>
 
-  <!--
-    ⚠️ 통합 방법 (기존 기능 유지)
-    1) 아래의 "INTEGRATION HOOKS" 블록 안에, 현재 index.html에 있던 <script> 전체를 그대로 붙여 넣으세요.
-    2) 폼/요소 ID는 다음과 같습니다. (가능하면 기존 ID를 유지)
-       createForm, nickname, character, roomName, secret, btnCreate, btnReset
-       joinForm, joinCode, joinName, joinSecret, btnJoin
-       roomCodePill, statusText, log, leaderbody
-    3) API 요청 성공 시 아래 헬퍼를 활용하면 UI가 자동으로 예쁘게 갱신됩니다.
-  -->
   <script>
-    // ========= UI HELPERS =========
-    const $ = (sel) => document.querySelector(sel);
-    const logBox = $('#log');
-    function pushLog(message, level="info"){
-      const time = new Date().toLocaleTimeString();
-      const color = level === 'error' ? 'var(--bad)' : level === 'warn' ? 'var(--warn)' : 'var(--txt)';
-      const line = document.createElement('div');
-      line.innerHTML = `<span class="muted">[${time}]</span> <span style="color:${color}">${message}</span>`;
-      logBox?.append(line); logBox?.scrollTo({top: logBox.scrollHeight, behavior: 'smooth'});
-    }
-    function setStatus(text, code=null){
-      $('#statusText').textContent = text || '';
-      const pill = $('#roomCodePill');
-      pill.textContent = code || (text ? '진행 중' : '대기 중');
+    const $ = s => document.querySelector(s);
+    const errBar = $('#errorBar');
+    function showError(msg) { errBar.textContent = msg; errBar.style.display = 'block'; }
+    function hideError() { errBar.style.display = 'none'; errBar.textContent=''; }
+
+    async function api(url, opts={}) {
+      if (opts.body && typeof opts.body !== 'string') {
+        opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
+        opts.body = JSON.stringify(opts.body);
+      }
+      const r = await fetch(url, opts);
+      let j = {};
+      try { j = await r.json(); } catch { j = {}; }
+      if (!r.ok) {
+        const m = j?.error || (typeof j === 'string' ? j : '요청 실패');
+        throw new Error(m);
+      }
+      return j;
     }
 
-    // Example: Prevent default submit to avoid accidental navigation
-    $('#createForm')?.addEventListener('submit', (e)=>{ e.preventDefault(); pushLog('방 생성 시도를 보냈습니다. (API 연결 필요)'); });
-    $('#joinForm')?.addEventListener('submit', (e)=>{ e.preventDefault(); pushLog('입장 시도를 보냈습니다. (API 연결 필요)'); });
-
-    $('#btnReset')?.addEventListener('click', ()=>{
-      $('#createForm')?.reset(); setStatus('초기화되었습니다.');
+    // 글자수 카운터
+    const nameEl = $('#cName'), descEl = $('#cDesc');
+    const nameCounter = $('#nameCounter'), descCounter = $('#descCounter');
+    function upCounter(el, elC) {
+      if (!el || !elC) return;
+      const max = el.maxLength || 0, len = el.value.length;
+      elC.textContent = `${len}/${max}`;
+      elC.classList.toggle('warn', max && (max - len) <= 5);
+    }
+    ['input','change'].forEach(ev=>{
+      if (nameEl) nameEl.addEventListener(ev, ()=>upCounter(nameEl, nameCounter));
+      if (descEl) descEl.addEventListener(ev, ()=>upCounter(descEl, descCounter));
     });
-  </script>
+    upCounter(nameEl, nameCounter); upCounter(descEl, descCounter);
 
-  <!-- ====== INTEGRATION HOOKS (PASTE YOUR EXISTING SCRIPT BELOW) ======
-  <script>
-    // 여기에 기존 index.html의 <script> 로직 전체를 붙여넣으세요.
-    // 예: fetch('/api/create-room', { method: 'POST', body: ... }) ...
-    // 성공 시 setStatus('방이 생성되었습니다', generatedCode); pushLog('전투가 시작되었습니다!');
-    // 실패 시 pushLog('에러: ...', 'error');
+    // 리더보드
+    async function refreshLB() {
+      try {
+        const data = await api('/api/leaderboard');
+        const tbody = $('#lb tbody'); tbody.innerHTML='';
+        data.forEach(c=>{
+          const tr = document.createElement('tr');
+          const nameTd = document.createElement('td');
+          const a = document.createElement('a');
+          a.href='#'; a.textContent=c.name; a.className='linklike';
+          a.onclick = (e)=>{ e.preventDefault(); openDetail(c.id); };
+          nameTd.appendChild(a);
+          tr.appendChild(nameTd);
+          tr.innerHTML += `<td>${c.elo}</td><td>${c.wins}승 ${c.losses}패</td><td>${c.description}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        showError('리더보드를 불러오지 못했어요: ' + e.message);
+      }
+    }
+
+    // 상세 전적
+    async function openDetail(id) {
+      $('#detailBlock').style.display = 'block';
+      $('#detailTitle').textContent = '전적';
+      $('#detailBody').textContent = '불러오는 중…';
+      try {
+        const { user, battles } = await api('/api/records?id='+id);
+        $('#detailTitle').textContent = `#${user.id} ${user.name} 전적 (${user.wins}승 ${user.losses}패, ELO ${user.elo})`;
+        const box = $('#detailBody'); box.innerHTML='';
+        if (!battles.length) { box.textContent = '전투 기록이 없습니다.'; return; }
+        const ul = document.createElement('ul');
+        battles.forEach(b=>{
+          const opp = (b.a_id===user.id)? {id:b.b_id, name:b.b_name} : {id:b.a_id, name:b.a_name};
+          const wl = (b.winner_id===user.id)? '승' : (b.winner_id==null)? '무' : '패';
+          const li = document.createElement('li');
+          li.textContent = `[${new Date(b.created_at).toLocaleString()}] vs ${opp.name} → ${wl}`;
+          ul.appendChild(li);
+        });
+        box.appendChild(ul);
+      } catch (e) {
+        $('#detailBody').textContent = '전적을 불러오지 못했어요: ' + e.message;
+      }
+    }
+
+    // 세션 & 뷰 전환
+    const adminBlock = $('#adminBlock'), meBlock=$('#meBlock'), meInfo=$('#meInfo'), meBadge=$('#meBadge');
+    async function refreshMe() {
+      try {
+        const { user, role } = await api('/api/auth/me');
+        hideError();
+        if (role === 'admin') {
+          adminBlock.style.display = '';
+          meBlock.style.display = 'none';
+          meBadge.textContent = 'admin';
+        } else if (role === 'character' && user) {
+          adminBlock.style.display = 'none';
+          meBlock.style.display = '';
+          meBadge.textContent = 'character';
+          meInfo.textContent = `#${user.id} ${user.name} — ELO ${user.elo}, ${user.wins}승 ${user.losses}패`;
+        } else {
+          adminBlock.style.display = 'none';
+          meBlock.style.display = 'none';
+        }
+      } catch (e) {
+        // 로그인 안되어 있어도 에러는 띄우지 않음
+      }
+    }
+
+    // Admin 캐릭터 생성
+    $('#createBtn')?.addEventListener('click', async ()=>{
+      const name = $('#cName').value.trim();
+      const description = $('#cDesc').value.trim();
+      const password = $('#cPass').value;
+      const msg = $('#createMsg');
+      if (!name || !description || !password) { msg.textContent='이름/설정/비밀번호를 입력하세요.'; return; }
+      if (password.length < 4) { msg.textContent='비밀번호는 4자 이상으로 입력하세요.'; return; }
+      try {
+        const u = await api('/api/characters', { method:'POST', body:{ name, description, password } });
+        msg.innerHTML = `<span class="ok">생성 완료:</span> #${u.id} ${u.name} (자동 로그인됨)`;
+        $('#cName').value=''; $('#cDesc').value=''; $('#cPass').value='';
+        upCounter(nameEl, nameCounter); upCounter(descEl, descCounter);
+        await refreshMe(); await refreshLB();
+      } catch (e) {
+        msg.innerHTML = `<span class="warn">생성 실패:</span> ${e.message}`;
+        if (e.message.includes('admin only')) showError('관리자로 로그인해야 캐릭터를 만들 수 있어요.');
+      }
+    });
+
+    // 로그인/로그아웃
+    $('#loginBtn').addEventListener('click', async ()=>{
+      const name = $('#loginName').value.trim();
+      const password = $('#loginPass').value;
+      const msg = $('#loginMsg');
+      if (!name || !password) { msg.textContent = '이름/비밀번호를 입력하세요.'; return; }
+      try {
+        await api('/api/auth/login', { method:'POST', body:{ name, password } });
+        msg.innerHTML = '<span class="ok">로그인 성공</span>';
+        hideError();
+        await refreshMe();
+      } catch (e) {
+        msg.innerHTML = '<span class="warn">로그인 실패</span>';
+        showError('로그인 실패: ' + e.message);
+      }
+    });
+    $('#logoutBtn').addEventListener('click', async ()=>{
+      await api('/api/auth/logout');
+      $('#loginMsg').textContent = '로그아웃됨';
+      await refreshMe();
+    });
+
+    // 배틀 + 쿨다운(클라 보조)
+    const fightBtn = $('#fightBtn'), cdSpan = $('#cooldown'), fightRes = $('#fightRes');
+    const CD_KEY = 'battleCooldownUntil';
+    function updateCooldownUI() {
+      const until = Number(localStorage.getItem(CD_KEY)||'0');
+      const remain = Math.ceil((until - Date.now())/1000);
+      if (remain > 0) {
+        fightBtn.disabled = true;
+        cdSpan.textContent = `쿨다운 ${remain}s`;
+      } else {
+        fightBtn.disabled = false;
+        cdSpan.textContent = '';
+      }
+    }
+    setInterval(updateCooldownUI, 500);
+
+    fightBtn.addEventListener('click', async ()=>{
+      try {
+        fightRes.textContent = '대결 중...';
+        const data = await api('/api/fight', { method:'POST' });
+        const { A, B, result } = data;
+        const winnerName = result.winner === 'draw' ? '무승부' : result.winner;
+        fightRes.innerHTML = `
+          <p><b>${A.name}</b>(${A.elo}) vs <b>${B.name}</b>(${B.elo})</p>
+          <p><b>결과:</b> ${winnerName} 승리!</p>
+          <div class="log">${result.log}</div>
+        `;
+        localStorage.setItem(CD_KEY, String(Date.now()+60000));
+        updateCooldownUI();
+        await refreshMe(); await refreshLB();
+      } catch (e) {
+        if (String(e.message).includes('cooldown')) {
+          // 서버가 남은 초를 주는 버전이라면 여기에서 표시 가능하지만, 일단 고정 메시지
+          fightRes.innerHTML = `<span class="warn">쿨다운 중입니다. 잠시 후 재시도</span>`;
+        } else if (String(e.message).includes('no available opponent')) {
+          fightRes.innerHTML = `<span class="warn">더 이상 대전 가능한 상대가 없습니다.</span>`;
+        } else if (String(e.message).includes('login required')) {
+          showError('전투는 캐릭터로 로그인 후 가능합니다.');
+        } else {
+          showError('전투 중 오류: ' + e.message);
+        }
+      }
+    });
+
+    // 초기 로드
+    (async ()=>{
+      await refreshMe();
+      await refreshLB();
+      updateCooldownUI();
+
+      // 초기 안내: API 실패하면 메시지 띄우기
+      // (일부 프로젝트에서 빈화면처럼 보이는 걸 방지)
+    })();
   </script>
-  ====== END INTEGRATION HOOKS ====== -->
 </body>
 </html>
