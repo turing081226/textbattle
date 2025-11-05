@@ -1,514 +1,319 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>텍스트 배틀</title>
-  <style>
-    :root {
-      --fg: #222;
-      --muted: #555;
-      --line: #ddd;
-      --bg: #f7f9fc; /* 부드러운 배경색 */
-      --card-bg: #ffffff;
-      --accent: #007aff; /* iOS 스타일 블루 */
-      --accent-hover: #0056b3;
-      --warn: #dc3545;
-      --ok: #28a745;
-      --shadow: 0 4px 12px rgba(0,0,0,0.06);
-      --radius-md: 8px;
-      --radius-lg: 12px;
-      --transition: all 0.2s ease-in-out;
-    }
-    
-    *{ box-sizing:border-box; }
-    
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
-      color: var(--fg); 
-      background: var(--bg); 
-      max-width: 960px; 
-      margin: 24px auto; 
-      padding: 0 12px; 
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    
-    h1 { margin: 8px 0 24px; font-weight: 700; text-align: center; color: var(--accent); }
-    h3 { margin: 0 0 16px; font-weight: 600; }
-
-    .grid { display:grid; grid-template-columns: 1fr; gap: 20px; }
-    
-    .card { 
-      border: 1px solid var(--line); 
-      border-radius: var(--radius-lg); 
-      padding: 20px; 
-      background: var(--card-bg); 
-      box-shadow: var(--shadow);
-      transition: var(--transition);
-    }
-    .card:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
-
-    input, textarea, button, select { 
-      font: inherit; 
-      padding: 10px 12px; 
-      border-radius: var(--radius-md);
-      transition: var(--transition);
-    }
-    
-    input, textarea, select { 
-      border: 1px solid var(--line); 
-      width: 100%; 
-      background: #fff;
-    }
-    input:focus, textarea:focus, select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
-      outline: none;
-    }
-    
-    textarea { height: 72px; resize: vertical; }
-    
-    button { 
-      border: 1px solid var(--line); 
-      background: #fdfdfd; 
-      cursor: pointer; 
-      font-weight: 500;
-    }
-    button:hover { background: #f4f4f4; border-color: #ccc; }
-    button:disabled { cursor: not-allowed; opacity: 0.6; }
-
-    /* 주요 버튼 스타일 */
-    button.btn-primary {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-      font-weight: 600;
-    }
-    button.btn-primary:hover {
-      background: var(--accent-hover);
-      border-color: var(--accent-hover);
-    }
-    
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border-bottom: 1px solid var(--line); padding: 12px 8px; text-align: left; }
-    th { color: var(--muted); font-weight: 500; font-size: 14px; }
-    tbody tr:hover { background: #f7f9fc; }
-
-    .row { display:flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
-    .row:last-child { margin-bottom: 0; }
-
-    .muted { color:var(--muted); font-size:14px; }
-    .right { text-align:right; }
-    
-    .log { 
-      white-space: pre-wrap; 
-      background:#f7f9fc; 
-      padding: 12px; 
-      border-radius: var(--radius-md); 
-      border: 1px solid var(--line); 
-      font-family: Consolas, "Courier New", monospace;
-      font-size: 14px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    
-    .warn { color:var(--warn); font-weight:600; }
-    .ok { color:var(--ok); font-weight:600; }
-    
-    .errorbar { 
-      background:#fff4f4; 
-      border: 1px solid #ffd6d6; 
-      color:#a40000; 
-      padding: 12px 16px; 
-      border-radius: var(--radius-md); 
-      margin: 12px 0 20px; 
-      display: none; 
-      font-weight: 500;
-      box-shadow: 0 2px 4px rgba(164,0,0,0.1);
-    }
-    
-    .linklike { color: var(--accent); text-decoration: none; cursor:pointer; font-weight: 500; }
-    .linklike:hover { text-decoration: underline; }
-    
-    .pill { 
-      display:inline-block; 
-      padding: 4px 10px; 
-      border: 1px solid var(--line); 
-      border-radius: 999px; 
-      font-size: 12px; 
-      color: #444; 
-      background: #f8f8f8;
-    }
-
-    /* 글자수 카운터 */
-    .counter-row { display: flex; justify-content: flex-end; margin-top: 4px; }
-    .counter { font-size: 12px; color: #666; }
-    .counter.warn { color: var(--warn); font-weight: 600; }
-    
-    /* 레이블 스타일 */
-    label { display: block; margin-bottom: 4px; font-weight: 500; font-size: 14px; }
-
-  </style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>텍스트 배틀</title>
+  <style>
+    :root {
+      --fg:#111; --muted:#666; --line:#e6e6e6; --bg:#fff; --accent:#3b82f6; --warn:#c00;
+    }
+    *{box-sizing:border-box}
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Arial, sans-serif;
+           color:var(--fg); background:var(--bg); max-width: 960px; margin: 24px auto; padding: 0 12px; }
+    h1 { margin: 8px 0 16px; font-weight:700; }
+    .grid { display:grid; grid-template-columns: 1fr; gap: 12px; }
+    .card { border: 1px solid var(--line); border-radius: 12px; padding: 16px; background:#fff; }
+    input, textarea, button, select { font: inherit; padding: 8px; }
+    input, textarea, select { border:1px solid var(--line); border-radius:8px; width:100%; }
+    textarea { height: 72px; resize: vertical; }
+    button { border:1px solid var(--line); border-radius:10px; background:#f8f8f8; cursor:pointer; }
+    button:hover { background:#f1f5ff; border-color:#cfe0ff }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid var(--line); padding: 10px 8px; text-align: left; }
+    .row { display:flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .muted { color:var(--muted); font-size:12px; }
+    .right { text-align:right; }
+    .log { white-space: pre-wrap; background:#fafafa; padding:10px; border-radius:10px; border:1px solid var(--line); }
+    .warn { color:var(--warn); font-weight:600; }
+    .ok { color:#107c10; font-weight:600; }
+    .errorbar { background:#fff4f4; border:1px solid #ffd6d6; color:#a40000; padding:10px 12px; border-radius:10px; margin:12px 0; display:none; }
+    .linklike { color: var(--accent); text-decoration: none; cursor:pointer; }
+    .pill { display:inline-block; padding:2px 8px; border:1px solid var(--line); border-radius:999px; font-size:12px; color:#444; }
+    .counter-row{display:flex;justify-content:flex-end;margin-top:4px}
+    .counter{font-size:12px;color:#666}
+    .counter.warn{color:#c00;font-weight:600}
+  </style>
 </head>
 <body>
-  <h1>텍스트 배틀</h1>
+  <h1>텍스트 배틀</h1>
 
-  <div id="errorBar" class="errorbar"></div>
+  <div id="errorBar" class="errorbar"></div>
 
-  <div class="grid">
-    <div class="card" id="adminBlock" style="display:none;">
-      <h3>Admin: 캐릭터 만들기</h3>
-      <div class="row">
-        <label for="cName" style="flex:1 1 260px;">이름
-          <input id="cName" maxlength="24" placeholder="예: 천둥검사">
-        </label>
-        <span id="nameCounter" class="muted pill">0/24</span>
-      </div>
-      <div class="row" style="align-items:flex-start;">
-        <label for="cDesc" style="flex:1 1 520px;">설정 (100자)
-          <textarea id="cDesc" maxlength="100" placeholder="예: 번개를 두른 도검을 휘둘러 빠르게 제압한다. 비에 젖으면 힘이 강해진다."></textarea>
-        </label>
-        <span id="descCounter" class="muted pill">0/100</span>
-      </div>
-      <div class="row">
-        <label for="cPass" style="flex:1 1 260px;">비밀번호
-          <input id="cPass" type="password" placeholder="4자 이상">
-        </label>
-        <button id="createBtn" class="btn-primary" style="align-self: flex-end; padding: 10px 16px;">생성 & 로그인</button>
-      </div>
-      <div id="createMsg" class="muted"></div>
-    </div>
+  <div class="grid">
+    <!-- Admin: 캐릭터 만들기 -->
+    <div class="card" id="adminBlock" style="display:none;">
+      <h3>Admin: 캐릭터 만들기</h3>
+      <div class="row">
+        <label style="flex:1 1 260px;">이름
+          <input id="cName" maxlength="24" placeholder="예: 천둥검사">
+        </label>
+        <span id="nameCounter" class="muted pill">0/24</span>
+      </div>
+      <div class="row" style="align-items:flex-start;">
+        <label style="flex:1 1 520px;">설정 (100자)
+          <textarea id="cDesc" maxlength="100" placeholder="예: 번개를 두른 도검을 휘둘러 빠르게 제압한다. 비에 젖으면 힘이 강해진다."></textarea>
+        </label>
+        <span id="descCounter" class="muted pill">0/100</span>
+      </div>
+      <div class="row">
+        <label style="flex:1 1 260px;">비밀번호
+          <input id="cPass" type="password" placeholder="4자 이상">
+        </label>
+        <button id="createBtn">생성 & 로그인</button>
+      </div>
+      <div id="createMsg" class="muted"></div>
+    </div>
 
-    <div class="card" id="loginBlock">
-      <h3>로그인</h3>
-      <div class="row" style="gap:12px;">
-        <label for="loginName" style="flex:1 1 240px;">이름
-          <input id="loginName" placeholder="캐릭터 이름">
-        </label>
-        <label for="loginPass" style="flex:1 1 240px;">비밀번호
-          <input id="loginPass" type="password" placeholder="비밀번호">
-        </label>
-        <button id="loginBtn" class="btn-primary" style="align-self: flex-end; padding: 10px 16px;">로그인</button>
-        <button id="logoutBtn" style="align-self: flex-end; padding: 10px 16px;">로그아웃</button>
-      </div>
-      <div id="loginMsg" class="muted"></div>
-    </div>
+    <!-- 로그인 -->
+    <div class="card" id="loginBlock">
+      <h3>로그인</h3>
+      <div class="row" style="gap:12px;">
+        <label style="flex:1 1 240px;">이름
+          <input id="loginName" placeholder="캐릭터 이름">
+        </label>
+        <label style="flex:1 1 240px;">비밀번호
+          <input id="loginPass" type="password" placeholder="비밀번호">
+        </label>
+        <button id="loginBtn">로그인</button>
+        <button id="logoutBtn">로그아웃</button>
+      </div>
+      <div id="loginMsg" class="muted"></div>
+    </div>
 
-    <div class="card" id="meBlock" style="display:none;">
-      <div class="row" style="justify-content:space-between; margin-bottom: 16px;">
-        <h3 style="margin:0;">내 정보</h3>
-        <span id="meBadge" class="pill">character</span>
-      </div>
-      <div id="meInfo" class="muted" style="font-size: 16px; margin-bottom: 16px;"></div>
-      <div class="row" style="margin-top:8px;">
-        <button id="fightBtn" class="btn-primary" style="padding: 10px 16px;">다음 배틀</button>
-        <span id="cooldown" class="muted"></span>
-      </div>
-      <div id="fightRes" style="margin-top:10px;"></div>
-    </div>
+    <!-- 내 전적 + 다음 배틀 -->
+    <div class="card" id="meBlock" style="display:none;">
+      <div class="row" style="justify-content:space-between;">
+        <h3 style="margin:0;">내 정보</h3>
+        <span id="meBadge" class="pill">character</span>
+      </div>
+      <div id="meInfo" class="muted"></div>
+      <div class="row" style="margin-top:8px;">
+        <button id="fightBtn">다음 배틀</button>
+        <span id="cooldown" class="muted"></span>
+      </div>
+      <div id="fightRes" style="margin-top:10px;"></div>
+    </div>
 
-    <div class="card">
-      <div class="row" style="justify-content:space-between;">
-        <h3 style="margin:0;">리더보드</h3>
-        <span class="muted" style="font-size: 13px;">이름을 클릭하면 전적 상세</span>
-      </div>
-      <table id="lb" style="margin-top: 12px;">
-        <thead><tr><th>이름</th><th>ELO</th><th>전적</th><th>설정</th></tr></thead>
-        <tbody>
-          </tbody>
-      </table>
-    </div>
+    <!-- 리더보드 -->
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <h3 style="margin:0;">리더보드</h3>
+        <span class="muted">이름을 클릭하면 전적 상세</span>
+      </div>
+      <table id="lb">
+        <thead><tr><th>이름</th><th>ELO</th><th>전적</th><th>설정</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
-    <div class="card" id="detailBlock" style="display:none;">
-      <h3 id="detailTitle" style="font-size: 18px;">전적</h3>
-      <div id="detailBody" class="muted">불러오는 중…</div>
-    </div>
-  </div>
+    <!-- 캐릭터 전적 상세 -->
+    <div class="card" id="detailBlock" style="display:none;">
+      <h3 id="detailTitle">전적</h3>
+      <div id="detailBody" class="muted">불러오는 중…</div>
+    </div>
+  </div>
 
-  <script>
-    // =================================================================
-    // 🌎 전역 헬퍼 (Global Helpers)
-    // =================================================================
-    const $ = s => document.querySelector(s);
-    const errBar = $('#errorBar');
+  <script>
+    const $ = s => document.querySelector(s);
+    const errBar = $('#errorBar');
+    function showError(msg) { errBar.textContent = msg; errBar.style.display = 'block'; }
+    function hideError() { errBar.style.display = 'none'; errBar.textContent=''; }
 
-    function showError(msg) { errBar.textContent = msg; errBar.style.display = 'block'; }
-    function hideError() { errBar.style.display = 'none'; errBar.textContent=''; }
+    async function api(url, opts={}) {
+      if (opts.body && typeof opts.body !== 'string') {
+        opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
+        opts.body = JSON.stringify(opts.body);
+      }
+      const r = await fetch(url, opts);
+      let j = {};
+      try { j = await r.json(); } catch { j = {}; }
+      if (!r.ok) {
+        const m = j?.error || (typeof j === 'string' ? j : '요청 실패');
+        throw new Error(m);
+      }
+      return j;
+    }
 
-    /**
-     * API 요청 래퍼
-     * @param {string} url
-     * @param {RequestInit} opts
-     */
-    async function api(url, opts={}) {
-      if (opts.body && typeof opts.body !== 'string') {
-        opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
-        opts.body = JSON.stringify(opts.body);
-      }
-      
-      let r, j = {};
-      try {
-        r = await fetch(url, opts);
-        j = await r.json();
-      } catch (e) {
-        // 네트워크 오류 또는 JSON 파싱 실패
-        throw new Error('네트워크 오류 또는 서버 응답을 읽을 수 없습니다.');
-      }
+    // 글자수 카운터
+    const nameEl = $('#cName'), descEl = $('#cDesc');
+    const nameCounter = $('#nameCounter'), descCounter = $('#descCounter');
+    function upCounter(el, elC) {
+      if (!el || !elC) return;
+      const max = el.maxLength || 0, len = el.value.length;
+      elC.textContent = `${len}/${max}`;
+      elC.classList.toggle('warn', max && (max - len) <= 5);
+    }
+    ['input','change'].forEach(ev=>{
+      if (nameEl) nameEl.addEventListener(ev, ()=>upCounter(nameEl, nameCounter));
+      if (descEl) descEl.addEventListener(ev, ()=>upCounter(descEl, descCounter));
+    });
+    upCounter(nameEl, nameCounter); upCounter(descEl, descCounter);
 
-      if (!r.ok) {
-        const m = j?.error || (typeof j === 'string' ? j : '알 수 없는 요청 실패');
-        throw new Error(m);
-      }
-      return j;
-    }
+    // 리더보드
+    async function refreshLB() {
+      try {
+        const data = await api('/api/leaderboard');
+        const tbody = $('#lb tbody'); tbody.innerHTML='';
+        data.forEach(c=>{
+          const tr = document.createElement('tr');
+          const nameTd = document.createElement('td');
+          const a = document.createElement('a');
+          a.href='#'; a.textContent=c.name; a.className='linklike';
+          a.onclick = (e)=>{ e.preventDefault(); openDetail(c.id); };
+          nameTd.appendChild(a);
+          tr.appendChild(nameTd);
+          tr.innerHTML += `<td>${c.elo}</td><td>${c.wins}승 ${c.losses}패</td><td>${c.description}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        showError('리더보드를 불러오지 못했어요: ' + e.message);
+      }
+    }
 
-    // =================================================================
-    // ✍️ UI: 글자수 카운터
-    // =================================================================
-    const nameEl = $('#cName'), descEl = $('#cDesc');
-    const nameCounter = $('#nameCounter'), descCounter = $('#descCounter');
-    
-    function upCounter(el, elC) {
-      if (!el || !elC) return;
-      const max = el.maxLength || 0, len = el.value.length;
-      elC.textContent = `${len}/${max}`;
-      elC.classList.toggle('warn', max && (max - len) <= 5);
-    }
-    
-    ['input','change'].forEach(ev=>{
-      if (nameEl) nameEl.addEventListener(ev, ()=>upCounter(nameEl, nameCounter));
-      if (descEl) descEl.addEventListener(ev, ()=>upCounter(descEl, descCounter));
-    });
-    upCounter(nameEl, nameCounter); upCounter(descEl, descCounter);
+    // 상세 전적
+    async function openDetail(id) {
+      $('#detailBlock').style.display = 'block';
+      $('#detailTitle').textContent = '전적';
+      $('#detailBody').textContent = '불러오는 중…';
+      try {
+        const { user, battles } = await api('/api/records?id='+id);
+        $('#detailTitle').textContent = `#${user.id} ${user.name} 전적 (${user.wins}승 ${user.losses}패, ELO ${user.elo})`;
+        const box = $('#detailBody'); box.innerHTML='';
+        if (!battles.length) { box.textContent = '전투 기록이 없습니다.'; return; }
+        const ul = document.createElement('ul');
+        battles.forEach(b=>{
+          const opp = (b.a_id===user.id)? {id:b.b_id, name:b.b_name} : {id:b.a_id, name:b.a_name};
+          const wl = (b.winner_id===user.id)? '승' : (b.winner_id==null)? '무' : '패';
+          const li = document.createElement('li');
+          li.textContent = `[${new Date(b.created_at).toLocaleString()}] vs ${opp.name} → ${wl}`;
+          ul.appendChild(li);
+        });
+        box.appendChild(ul);
+      } catch (e) {
+        $('#detailBody').textContent = '전적을 불러오지 못했어요: ' + e.message;
+      }
+    }
 
-    // =================================================================
-    // 🏆 UI: 리더보드
-    // =================================================================
-    async function refreshLB() {
-      const tbody = $('#lb tbody');
-      try {
-        const data = await api('/api/leaderboard');
-        tbody.innerHTML=''; // 비우기
-        data.forEach(c=>{
-          const tr = document.createElement('tr');
-          const nameTd = document.createElement('td');
-          const a = document.createElement('a');
-          a.href='#'; a.textContent=c.name; a.className='linklike';
-          a.onclick = (e)=>{ e.preventDefault(); openDetail(c.id); };
-          nameTd.appendChild(a);
-          tr.appendChild(nameTd);
-          
-          const eloTd = document.createElement('td');
-          eloTd.textContent = c.elo;
-          tr.appendChild(eloTd);
-          
-          const recordTd = document.createElement('td');
-          recordTd.textContent = `${c.wins}승 ${c.losses}패`;
-          tr.appendChild(recordTd);
-          
-          const descTd = document.createElement('td');
-          descTd.textContent = c.description;
-          tr.appendChild(descTd);
-          
-          tbody.appendChild(tr);
-        });
-      } catch (e) {
-        showError('리더보드를 불러오지 못했어요: ' + e.message);
-        tbody.innerHTML = '<tr><td colspan="4">리더보드를 불러오는 데 실패했습니다.</td></tr>';
-      }
-    }
+    // 세션 & 뷰 전환
+    const adminBlock = $('#adminBlock'), meBlock=$('#meBlock'), meInfo=$('#meInfo'), meBadge=$('#meBadge');
+    async function refreshMe() {
+      try {
+        const { user, role } = await api('/api/auth/me');
+        hideError();
+        if (role === 'admin') {
+          adminBlock.style.display = '';
+          meBlock.style.display = 'none';
+          meBadge.textContent = 'admin';
+        } else if (role === 'character' && user) {
+          adminBlock.style.display = 'none';
+          meBlock.style.display = '';
+          meBadge.textContent = 'character';
+          meInfo.textContent = `#${user.id} ${user.name} — ELO ${user.elo}, ${user.wins}승 ${user.losses}패`;
+        } else {
+          adminBlock.style.display = 'none';
+          meBlock.style.display = 'none';
+        }
+      } catch (e) {
+        // 로그인 안되어 있어도 에러는 띄우지 않음
+      }
+    }
 
-    // =================================================================
-    // 📜 UI: 상세 전적
-    // =================================================================
-    async function openDetail(id) {
-      $('#detailBlock').style.display = 'block';
-      $('#detailTitle').textContent = '전적';
-      $('#detailBody').textContent = '불러오는 중…';
-      try {
-        const { user, battles } = await api('/api/records?id='+id);
-        $('#detailTitle').textContent = `#${user.id} ${user.name} 전적 (${user.wins}승 ${user.losses}패, ELO ${user.elo})`;
-        const box = $('#detailBody'); box.innerHTML='';
-        if (!battles.length) { box.textContent = '전투 기록이 없습니다.'; return; }
-        
-        const ul = document.createElement('ul');
-        ul.style.paddingLeft = '20px';
-        battles.forEach(b=>{
-          const opp = (b.a_id===user.id)? {id:b.b_id, name:b.b_name} : {id:b.a_id, name:b.a_name};
-          const wl = (b.winner_id===user.id)? '승' : (b.winner_id==null)? '무' : '패';
-          const wlClass = (b.winner_id===user.id)? 'ok' : (b.winner_id==null)? '' : 'warn';
-          
-          const li = document.createElement('li');
-          li.style.marginBottom = '8px';
-          li.innerHTML = `[${new Date(b.created_at).toLocaleString()}] vs ${opp.name} → <b class="${wlClass}">${wl}</b>`;
-          ul.appendChild(li);
-        });
-        box.appendChild(ul);
-      } catch (e) {
-        $('#detailBody').textContent = '전적을 불러오지 못했어요: ' : ' + e.message;
-      }
-    }
+    // Admin 캐릭터 생성
+    $('#createBtn')?.addEventListener('click', async ()=>{
+      const name = $('#cName').value.trim();
+      const description = $('#cDesc').value.trim();
+      const password = $('#cPass').value;
+      const msg = $('#createMsg');
+      if (!name || !description || !password) { msg.textContent='이름/설정/비밀번호를 입력하세요.'; return; }
+      if (password.length < 4) { msg.textContent='비밀번호는 4자 이상으로 입력하세요.'; return; }
+      try {
+        const u = await api('/api/characters', { method:'POST', body:{ name, description, password } });
+        msg.innerHTML = `<span class="ok">생성 완료:</span> #${u.id} ${u.name} (자동 로그인됨)`;
+        $('#cName').value=''; $('#cDesc').value=''; $('#cPass').value='';
+        upCounter(nameEl, nameCounter); upCounter(descEl, descCounter);
+        await refreshMe(); await refreshLB();
+      } catch (e) {
+        msg.innerHTML = `<span class="warn">생성 실패:</span> ${e.message}`;
+        if (e.message.includes('admin only')) showError('관리자로 로그인해야 캐릭터를 만들 수 있어요.');
+      }
+    });
 
-    // =================================================================
-    // 👤 인증 & 뷰 전환 (Auth & View Switching)
-    // =================================================================
-    const adminBlock = $('#adminBlock'), meBlock=$('#meBlock'), meInfo=$('#meInfo'), meBadge=$('#meBadge');
-    async function refreshMe() {
-      try {
-        const { user, role } = await api('/api/auth/me');
-        hideError();
-        if (role === 'admin') {
-          adminBlock.style.display = '';
-          meBlock.style.display = 'none';
-          meBadge.textContent = 'admin';
-        } else if (role === 'character' && user) {
-          adminBlock.style.display = 'none';
-          meBlock.style.display = '';
-          meBadge.textContent = 'character';
-          meInfo.textContent = `#${user.id} ${user.name} — ELO ${user.elo}, ${user.wins}승 ${user.losses}패`;
-        } else {
-          adminBlock.style.display = 'none';
-          meBlock.style.display = 'none';
-        }
-      } catch (e) {
-        // 로그인 안되어 있어도 에러는 띄우지 않음 (의도된 동작)
-        adminBlock.style.display = 'none';
-        meBlock.style.display = 'none';
-      }
-    }
+    // 로그인/로그아웃
+    $('#loginBtn').addEventListener('click', async ()=>{
+      const name = $('#loginName').value.trim();
+      const password = $('#loginPass').value;
+      const msg = $('#loginMsg');
+      if (!name || !password) { msg.textContent = '이름/비밀번호를 입력하세요.'; return; }
+      try {
+        await api('/api/auth/login', { method:'POST', body:{ name, password } });
+        msg.innerHTML = '<span class="ok">로그인 성공</span>';
+        hideError();
+        await refreshMe();
+      } catch (e) {
+        msg.innerHTML = '<span class="warn">로그인 실패</span>';
+        showError('로그인 실패: ' + e.message);
+      }
+    });
+    $('#logoutBtn').addEventListener('click', async ()=>{
+      await api('/api/auth/logout');
+      $('#loginMsg').textContent = '로그아웃됨';
+      await refreshMe();
+    });
 
-    // =================================================================
-    // 🛠️ 이벤트: Admin 캐릭터 생성
-    // =================================================================
-    const createBtn = $('#createBtn');
-    createBtn?.addEventListener('click', async ()=>{
-      const name = $('#cName').value.trim();
-      const description = $('#cDesc').value.trim();
-      const password = $('#cPass').value;
-      const msg = $('#createMsg');
-      
-      if (!name || !description || !password) { msg.textContent='이름/설정/비밀번호를 입력하세요.'; return; }
-      if (password.length < 4) { msg.textContent='비밀번호는 4자 이상으로 입력하세요.'; return; }
-      
-      createBtn.disabled = true;
-      msg.innerHTML = '생성 중...';
-      try {
-        const u = await api('/api/characters', { method:'POST', body:{ name, description, password } });
-        msg.innerHTML = `<span class="ok">생성 완료:</span> #${u.id} ${u.name} (자동 로그인됨)`;
-        $('#cName').value=''; $('#cDesc').value=''; $('#cPass').value='';
-        upCounter(nameEl, nameCounter); upCounter(descEl, descCounter);
-        await refreshMe(); await refreshLB();
-      } catch (e) {
-        msg.innerHTML = `<span class="warn">생성 실패:</span> ${e.message}`;
-        if (e.message.includes('admin only')) showError('관리자로 로그인해야 캐릭터를 만들 수 있어요.');
-      } finally {
-        createBtn.disabled = false;
-      }
-    });
+    // 배틀 + 쿨다운(클라 보조)
+    const fightBtn = $('#fightBtn'), cdSpan = $('#cooldown'), fightRes = $('#fightRes');
+    const CD_KEY = 'battleCooldownUntil';
+    function updateCooldownUI() {
+      const until = Number(localStorage.getItem(CD_KEY)||'0');
+      const remain = Math.ceil((until - Date.now())/1000);
+      if (remain > 0) {
+        fightBtn.disabled = true;
+        cdSpan.textContent = `쿨다운 ${remain}s`;
+      } else {
+        fightBtn.disabled = false;
+        cdSpan.textContent = '';
+      }
+    }
+    setInterval(updateCooldownUI, 500);
 
-    // =================================================================
-    // 🔑 이벤트: 로그인 / 로그아웃
-    // =================================================================
-    const loginBtn = $('#loginBtn');
-    loginBtn.addEventListener('click', async ()=>{
-      const name = $('#loginName').value.trim();
-      const password = $('#loginPass').value;
-      const msg = $('#loginMsg');
-      
-      if (!name || !password) { msg.textContent = '이름/비밀번호를 입력하세요.'; return; }
-      
-      loginBtn.disabled = true;
-      msg.innerHTML = '로그인 중...';
-      try {
-        await api('/api/auth/login', { method:'POST', body:{ name, password } });
-        msg.innerHTML = '<span class="ok">로그인 성공</span>';
-        hideError();
-        $('#loginName').value = '';
-        $('#loginPass').value = '';
-        await refreshMe();
-      } catch (e) {
-        msg.innerHTML = '<span class="warn">로그인 실패</span>';
-        showError('로그인 실패: ' + e.message);
-      } finally {
-        loginBtn.disabled = false;
-      }
-    });
-    
-    $('#logoutBtn').addEventListener('click', async ()=>{
-      try {
-        await api('/api/auth/logout');
-        $('#loginMsg').textContent = '로그아웃됨';
-      } catch (e) {
-        $('#loginMsg').innerHTML = `<span class="warn">로그아웃 실패: ${e.message}</span>`;
-      } finally {
-        await refreshMe();
-      }
-    });
+    fightBtn.addEventListener('click', async ()=>{
+      try {
+        fightRes.textContent = '대결 중...';
+        const data = await api('/api/fight', { method:'POST' });
+        const { A, B, result } = data;
+        const winnerName = result.winner === 'draw' ? '무승부' : result.winner;
+        fightRes.innerHTML = `
+          <p><b>${A.name}</b>(${A.elo}) vs <b>${B.name}</b>(${B.elo})</p>
+          <p><b>결과:</b> ${winnerName} 승리!</p>
+          <div class="log">${result.log}</div>
+        `;
+        localStorage.setItem(CD_KEY, String(Date.now()+60000));
+        updateCooldownUI();
+        await refreshMe(); await refreshLB();
+      } catch (e) {
+        if (String(e.message).includes('cooldown')) {
+          // 서버가 남은 초를 주는 버전이라면 여기에서 표시 가능하지만, 일단 고정 메시지
+          fightRes.innerHTML = `<span class="warn">쿨다운 중입니다. 잠시 후 재시도</span>`;
+        } else if (String(e.message).includes('no available opponent')) {
+          fightRes.innerHTML = `<span class="warn">더 이상 대전 가능한 상대가 없습니다.</span>`;
+        } else if (String(e.message).includes('login required')) {
+          showError('전투는 캐릭터로 로그인 후 가능합니다.');
+        } else {
+          showError('전투 중 오류: ' + e.message);
+        }
+      }
+    });
 
-    // =================================================================
-    // ⚔️ 이벤트: 배틀 + 쿨다운
-    // =================================================================
-    const fightBtn = $('#fightBtn'), cdSpan = $('#cooldown'), fightRes = $('#fightRes');
-    const CD_KEY = 'battleCooldownUntil';
-    
-    function updateCooldownUI() {
-      // fightBtn이 API 요청으로 비활성화된 상태가 아니라면 쿨다운 체크
-      if (!fightBtn.disabled || fightRes.textContent === '대결 중...') {
-        const until = Number(localStorage.getItem(CD_KEY)||'0');
-        const remain = Math.ceil((until - Date.now())/1000);
-        if (remain > 0) {
-          fightBtn.disabled = true;
-          cdSpan.textContent = `쿨다운 ${remain}s`;
-        } else {
-          fightBtn.disabled = false;
-          cdSpan.textContent = '';
-        }
-      }
-    }
-    setInterval(updateCooldownUI, 500);
+    // 초기 로드
+    (async ()=>{
+      await refreshMe();
+      await refreshLB();
+      updateCooldownUI();
 
-    fightBtn.addEventListener('click', async ()=>{
-      fightBtn.disabled = true; // API 요청 시작, 버튼 비활성화
-      try {
-        fightRes.textContent = '대결 중...';
-        const data = await api('/api/fight', { method:'POST' });
-        const { A, B, result } = data;
-        const winnerName = result.winner === 'draw' ? '무승부' : result.winner;
-        fightRes.innerHTML = `
-          <p style="font-size: 1.1em;"><b>${A.name}</b>(${A.elo}) vs <b>${B.name}</b>(${B.elo})</p>
-          <p><b>결과:</b> ${winnerName} 승리!</p>
-          <div class="log">${result.log}</div>
-        `;
-        localStorage.setItem(CD_KEY, String(Date.now()+60000));
-        await refreshMe(); await refreshLB();
-      } catch (e) {
-        let errorMsg = '전투 중 오류: ' + e.message;
-        if (String(e.message).includes('cooldown')) {
-          fightRes.innerHTML = `<span class="warn">쿨다운 중입니다. 잠시 후 재시도</span>`;
-        } else if (String(e.message).includes('no available opponent')) {
-          fightRes.innerHTML = `<span class="warn">더 이상 대전 가능한 상대가 없습니다.</span>`;
-        } else if (String(e.message).includes('login required')) {
-          fightRes.innerHTML = '';
-          showError('전투는 캐릭터로 로그인 후 가능합니다.');
-        } else {
-          fightRes.innerHTML = '';
-          showError('전투 중 오류: ' + e.message);
-        }
-      } finally {
-        // 쿨다운 로직이 버튼 상태를 관리하므로 updateCooldownUI()만 호출
-        updateCooldownUI();
-      }
-    });
-
-    // =================================================================
-    // 🚀 초기화 (Initialization)
-    // =================================================================
-    (async ()=>{
-      await refreshMe();
-      await refreshLB();
-      updateCooldownUI();
-    })();
-  </script>
+      // 초기 안내: API 실패하면 메시지 띄우기
+      // (일부 프로젝트에서 빈화면처럼 보이는 걸 방지)
+    })();
+  </script>
 </body>
 </html>
