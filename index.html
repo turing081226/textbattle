@@ -39,7 +39,8 @@
 
     label{display:block;margin:3px 0 6px;font-size:12px;color:var(--muted)}
     input,select,button,textarea{font:inherit;color:inherit}
-    input[type=text],input[type=number],input[type=password],select,textarea{
+    /* 기본 입력 스타일 + type 미기재 input도 포함 */
+    input[type=text],input[type=number],input[type=password],select,textarea,input:not([type]){
       width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0b132b;outline:none;
       transition:.2s box-shadow,.2s border-color}
     input::placeholder{color:#8ea0b3}
@@ -74,9 +75,35 @@
 
     .fade-in{animation:fade .4s ease-out both}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-    /* Keep original error bar semantics */
+    /* 오류/링크 */
     .errorbar{background:#1a0e0e;border:1px solid #3b1a1a;color:#ffd6d6;padding:10px 12px;border-radius:10px;margin:12px 0;display:none}
     .linklike{color:var(--accent);text-decoration:none;cursor:pointer}
+    .linklike:visited{color:var(--accent)}
+
+    /* === 가독성 강화: admin 캐릭터 생성 성공 메시지 === */
+    #createMsg{color:var(--txt);}
+    .ok{color:var(--good);font-weight:700;}
+    .warn{color:var(--warn);font-weight:700;}
+    .name-chip{
+      display:inline-block;padding:3px 10px;border-radius:999px;
+      background:linear-gradient(135deg, var(--accent), var(--accent2));color:#fff;font-weight:800;
+    }
+    #meInfo{color:var(--txt);}
+
+    /* === 요구 반영: 특정 입력창(캐릭터 이름/닉네임) 배경을 주변과 비슷하게, 텍스트는 선명하게 === */
+    #cName, #loginName{
+      background:#0d142b !important;        /* 주변 카드와 비슷한 네이비 */
+      border-color:#1e2a44 !important;
+      color:#e7edf6 !important;             /* 대비 높은 텍스트 */
+    }
+    #cName::placeholder, #loginName::placeholder{ color:#9fb0c4; } /* 연하지만 읽히게 */
+
+    /* === 요구 반영: 리더보드 캐릭터명(첫 컬럼 링크) 노란색 === */
+    #lb tbody td:first-child a{
+      color:#ffd54a !important; font-weight:700;
+    }
+    #lb tbody td:first-child a:visited{ color:#ffd54a !important; }
+    #lb tbody td:first-child a:hover{ filter:brightness(1.1); }
   </style>
 </head>
 <body>
@@ -94,6 +121,7 @@
           <div class="helper">텍스트 배틀</div>
         </div>
       </div>
+      <span class="badge">beta</span>
     </header>
 
     <div id="errorBar" class="errorbar"></div>
@@ -104,9 +132,8 @@
         <h2>Admin: 캐릭터 만들기</h2>
         <div class="row">
           <div class="field half">
-            <!-- ▼ 변경: 이름 → 캐릭터 이름 -->
             <label for="cName">캐릭터 이름</label>
-            <input id="cName" maxlength="24" placeholder="예: 천둥검사">
+            <input id="cName" type="text" maxlength="24" placeholder="예: 천둥검사">
             <div class="counter-row"><span id="nameCounter" class="counter">0/24</span></div>
           </div>
           <div class="field half">
@@ -130,9 +157,8 @@
         <h2>로그인</h2>
         <div class="row">
           <div class="field half">
-            <!-- ▼ 변경: 이름 → 닉네임 -->
             <label for="loginName">닉네임</label>
-            <input id="loginName" placeholder="닉네임">
+            <input id="loginName" type="text" placeholder="닉네임">
           </div>
           <div class="field half">
             <label for="loginPass">비밀번호</label>
@@ -265,12 +291,12 @@
         });
         box.appendChild(ul);
       } catch (e) {
-        $('#detailBody').textContent = '전적을 불러오지 못했어요: ' + e.message;
+        $('#detailBody').textContent = '전적을 불러오지 못했어요: ' + e.message);
       }
     }
 
     // 세션 & 뷰 전환
-    const adminBlock = $('#adminBlock'), meBlock=$('#meBlock'), meInfo=$('#meInfo'), meBadge=$('#meBadge');
+    const adminBlock = $('#adminBlock'), meBlock=$('#meBlock'), meInfo=$('#meInfo'), meBadge=$('#meBadge']);
     async function refreshMe() {
       try {
         const { user, role } = await api('/api/auth/me');
@@ -303,7 +329,7 @@
       if (password.length < 4) { msg.textContent='비밀번호는 4자 이상으로 입력하세요.'; return; }
       try {
         const u = await api('/api/characters', { method:'POST', body:{ name, description, password } });
-        msg.innerHTML = `<span class="ok">생성 완료:</span> #${u.id} ${u.name} (자동 로그인됨)`;
+        msg.innerHTML = `<span class="ok">생성 완료:</span> <span class="name-chip">#${u.id} ${u.name}</span> (자동 로그인됨)`;
         $('#cName').value=''; $('#cDesc').value=''; $('#cPass').value='';
         upCounter(nameEl, nameCounter); upCounter(descEl, descCounter);
         await refreshMe(); await refreshLB();
