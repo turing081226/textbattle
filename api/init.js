@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
   try {
-    // users: 관리자/추후 일반 유저 확장용
+    // users: 관리자 계정 테이블
     await sql`create table if not exists users(
       id serial primary key,
       name text not null unique,
@@ -12,18 +12,19 @@ export default async function handler(req, res) {
       created_at timestamptz not null default now()
     );`;
 
-    // characters: 실제 대결에 참여하는 계정(일반 유저)
+    // characters: 캐릭터 테이블 (기본 스키마 생성)
     await sql`create table if not exists characters(
       id serial primary key,
       name text not null unique,
       description text not null,
-      password_hash text,   -- bcrypt 해시
+      password_hash text not null,
       elo int not null default 1000,
       wins int not null default 0,
       losses int not null default 0,
       created_at timestamptz not null default now()
     );`;
 
+    // battles: 전투 기록
     await sql`create table if not exists battles(
       id serial primary key,
       a_id int not null references characters(id) on delete cascade,
@@ -34,12 +35,16 @@ export default async function handler(req, res) {
       created_at timestamptz not null default now()
     );`;
 
-    // 동일(무순서) 쌍 재대결 금지
+    // 인덱스
     await sql`create index if not exists idx_battles_created_at on battles(created_at desc)`;
     await sql`create unique index if not exists idx_battles_pair_unique
       on battles (least(a_id,b_id), greatest(a_id,b_id))`;
 
-    // admin (id=admin, pw=neuron) 사전 생성 (없으면 추가)
+    // 🔧 (신규) 연락처 컬럼 추가
+    await sql`alter table characters add column if not exists email text`;
+    await sql`alter table characters add column if not exists phone text`;
+
+    // 관리자 기본 계정(admin/neuron)
     const adminHash = await bcrypt.hash('neuron', 10);
     await sql`
       insert into users(name, password_hash, role)
