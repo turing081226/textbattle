@@ -40,7 +40,7 @@
     label{display:block;margin:3px 0 6px;font-size:12px;color:var(--muted)}
     input,select,button,textarea{font:inherit;color:inherit}
     /* 기본 입력 + type 미지정 input 포함 */
-    input[type=text],input[type=number],input[type=password],select,textarea,input:not([type]){
+    input[type=text],input[type=number],input[type=password],input[type=email],input[type=tel],select,textarea,input:not([type]){
       width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0b132b;outline:none;
       transition:.2s box-shadow,.2s border-color}
     input::placeholder{color:#8ea0b3}
@@ -137,6 +137,18 @@
             <label for="cPass">비밀번호</label>
             <input id="cPass" type="password" placeholder="4자 이상">
           </div>
+
+          <!-- 추가: 이메일/전화번호 (선택) -->
+          <div class="field half">
+            <label for="cEmail">이메일 (선택)</label>
+            <input id="cEmail" type="email" placeholder="예: name@example.com">
+          </div>
+          <div class="field half">
+            <label for="cPhone">전화번호 (선택)</label>
+            <input id="cPhone" type="tel" placeholder="예: 010-1234-5678">
+          </div>
+          <!-- // 추가 끝 -->
+
           <div class="field">
             <label for="cDesc">설정 (100자)</label>
             <textarea id="cDesc" maxlength="100" placeholder="예: 번개를 두른 도검을 휘둘러 빠르게 제압한다."></textarea>
@@ -349,13 +361,31 @@
       const name = $('#cName')?.value?.trim();
       const description = $('#cDesc')?.value?.trim();
       const password = $('#cPass')?.value || '';
+      const email = $('#cEmail')?.value?.trim();
+      const phone = $('#cPhone')?.value?.trim();
       const msg = $('#createMsg');
+
       if (!name || !description || !password){ msg.textContent='이름/설정/비밀번호를 입력하세요.'; return; }
       if (password.length < 4){ msg.textContent='비밀번호는 4자 이상으로 입력하세요.'; return; }
+
+      // 선택 입력 검증 (간단)
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+        msg.textContent='이메일 형식이 올바르지 않습니다.'; return;
+      }
+      if (phone){
+        const digits = phone.replace(/[^\d]/g,'');
+        if (digits.length < 7){ msg.textContent='전화번호 형식이 올바르지 않습니다.'; return; }
+      }
+
       try{
-        const u = await api('/api/characters', { method:'POST', body:{ name, description, password } });
+        const body = { name, description, password };
+        if (email) body.email = email;
+        if (phone) body.phone = phone;
+
+        const u = await api('/api/characters', { method:'POST', body });
         msg.innerHTML = `<span class="ok">생성 완료:</span> <span class="name-chip">#${u.id} ${u.name}</span> (자동 로그인됨)`;
         $('#cName').value=''; $('#cDesc').value=''; $('#cPass').value='';
+        $('#cEmail').value=''; $('#cPhone').value='';
         upCounter(nameEl, nameCounter); upCounter(descEl, descCounter);
         await refreshMe(); await refreshLB();
       }catch(e){
